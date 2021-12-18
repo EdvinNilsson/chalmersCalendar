@@ -11,7 +11,7 @@ const regex trPattern("<tr >(.+?)</tr>");
 const regex spanPattern("<span id=\".+?\">(.+?)</span>");
 const regex cleanPattern("</?[bi]>");
 
-const boost::regex academicTermPattern("<option (selected=\"selected\" |)value=\"([0-9]{4}\\/[0-9]{4})\">");
+const regex academicTermPattern("<option (selected=\"selected\" |)value=\"([0-9]{4}\\/[0-9]{4})\">");
 
 auto swedishExceptions = {"anmälan","registrering", "kursval", "läsperiod"};
 auto englishExceptions = {"sign-up", "registration", "course selection", "study period", "application"};
