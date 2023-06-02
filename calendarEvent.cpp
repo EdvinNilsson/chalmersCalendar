@@ -5,13 +5,12 @@
 
 using namespace boost;
 
-const regex tablePattern("<table class=\"table (.*)</table>");
-const regex tbodyPattern("<tbody>(.+?)</tbody>");
-const regex trPattern("<tr >(.+?)</tr>");
-const regex spanPattern("<span id=\".+?\">(.+?)</span>");
+const regex tablePattern(R"(<table width="100%" border="0" cellspacing="0" cellpadding="3">(.*)</table>)");
+const regex trPattern("<tr .+?>(.+?)</tr>");
+const regex tdPattern("<td>(.+?)</td>");
 const regex cleanPattern("</?[bi]>");
 
-const regex academicTermPattern("<option (selected=\"selected\" |)value=\"([0-9]{4}\\/[0-9]{4})\">");
+const regex academicTermPattern("<option value=\"([0-9]{4}\\/[0-9]{4})\"( selected=\"selected\"|)>");
 
 auto swedishExceptions = {"anmälan","registrering", "kursval", "läsperiod"};
 auto englishExceptions = {"sign-up", "registration", "course selection", "study period", "application"};
@@ -50,8 +49,8 @@ std::vector<std::string> getUpcomingTerms(std::string html) {
     end = html.end();
     match_results<std::string::const_iterator> what;
     while (regex_search(start, end,what, academicTermPattern, match_single_line)) {
-        if (!what[1].str().empty()) break;
-        res.push_back(what[2].str());
+        if (!what[2].str().empty()) break;
+        res.push_back(what[1].str());
         start = what[0].second;
     }
     return res;
@@ -106,17 +105,13 @@ CalendarEvent::CalendarEvent(std::vector<std::string> spans, EventType type, Lan
 }
 
 void getEvents(const std::string& input, std::vector<CalendarEvent>& events, Language language) {
-    std::string table = getTable(input);
+    auto table = getMatches(input, tablePattern).back();
 
-    auto tbodies = getMatches(table, tbodyPattern);
+    auto trs = getMatches(table, trPattern);
 
-    for (const auto& tbody : tbodies) {
-        auto trs = getMatches(tbody, trPattern);
+    for (const auto& tr : trs) {
 
-        for (const auto& tr : trs) {
-
-            auto spans = getMatches(tr, spanPattern);
-            createEvents(spans, events, language);
-        }
+        auto tds = getMatches(tr, tdPattern);
+        createEvents(tds, events, language);
     }
 }

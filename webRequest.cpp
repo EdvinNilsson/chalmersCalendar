@@ -1,9 +1,10 @@
 #include "webRequest.h"
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
+#include <boost/locale.hpp>
 #include <iostream>
 
-std::string getHTML(const std::string& server, const std::string& path) {
+std::string getHTML(const std::string& server, const std::string& path, const std::string& cookie, const std::string& data) {
     boost::system::error_code ec;
     using namespace boost::asio;
 
@@ -19,10 +20,13 @@ std::string getHTML(const std::string& server, const std::string& path) {
 
     boost::asio::streambuf request;
     std::ostream request_stream(&request);
-    request_stream << "GET " << path << " HTTP/1.1\r\n";
+    request_stream << "POST " << path << " HTTP/1.1\r\n";
     request_stream << "Host: " << server << "\r\n";
+    request_stream << "Cookie: " << cookie << "\r\n";
     request_stream << "Accept: */*\r\n";
+    request_stream << "Content-Length: " << data.length() << "\r\n";
     request_stream << "Connection: close\r\n\r\n";
+    request_stream << data;
 
     boost::asio::write(ssock, request);
 
@@ -33,5 +37,5 @@ std::string getHTML(const std::string& server, const std::string& path) {
         if (!ec) response.append(buf, buf + bytes_transferred);
     } while (!ec);
 
-    return response;
+    return boost::locale::conv::to_utf<char>(response, "Latin1");
 }
